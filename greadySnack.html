@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title></title>
+		<style>
+			body{ margin: 0;}
+			/* 表格样式  */
+			table{ margin: 0 auto; border-collapse: collapse;}
+			table td{width: 18px; height: 18px; border: 1px solid gainsboro; border-collapse: collapse;}
+			p{ text-align: center;}
+		</style>
+		<script>
+			window.onload = function(){
+	layout();
+	var oTab = document.getElementById('tab');
+	var timer = null;
+	var pos = [{x:0,y:0},{x:1,y:0},{x:2,y:0},{x:3,y:0}];
+	var dir = 39;
+	var lastCellX;
+	var lastCellY;
+	var appleCellX;
+	var appleCellY;
+	var score = 0;
+	var speed = 250;
+	var flag = true;
+	var last = 0;
+	
+	var sco = document.getElementById('sco');
+	sco.innerHTML = score;
+	
+	applePos();
+	move();
+	
+	timer = setInterval(function(){
+		move();
+	},speed);
+	
+	
+	//设置方向
+	window.onkeydown = function(ev){
+		var ev = ev||enent;
+		if(!flag){
+			return;
+		}
+		if(Math.abs(ev.keyCode-dir) != 2){
+			if(ev.keyCode == dir){
+				move();
+			}else{
+				var t1 = new Date().getTime();
+				if((t1-last)>speed){
+					dir = ev.keyCode;
+				}
+				last = t1;
+			}
+		}
+	}
+	
+	//设置苹果位置
+	function applePos(){
+		appleCellX = Math.floor(Math.random()*30);
+		appleCellY= Math.floor(Math.random()*30);
+		for(var i in pos){
+			while(appleCellX==pos[i].x){
+				appleCellX = Math.floor(Math.random()*30);
+			}
+			while(appleCellY==pos[i].y){
+				appleCellY = Math.floor(Math.random()*30);
+			}
+		}
+		var appleCell = oTab.rows[appleCellY].cells[appleCellX];
+		appleCell.style.background = 'blue';
+	}
+	
+	//设置蛇的路径
+	function move(){
+		//结束检测
+		changePos();
+		if(pos[pos.length-1].x<0||pos[pos.length-1].x==30||pos[pos.length-1].y<0||pos[pos.length-1].y==30||eatSelf()){
+			flag = false;
+			alert("game over");
+			clearInterval(timer);
+			return;
+		}else{
+			oTab.rows[lastCellY].cells[lastCellX].style.background = 'none';
+			for(var i in pos){
+				var oCell = oTab.rows[pos[i].y].cells[pos[i].x];
+				oCell.style.background = 'black';
+			}
+		
+			//碰撞检测
+			if((appleCellX==pos[pos.length-1].x)&&(appleCellY==pos[pos.length-1].y)){
+				score += 1;
+				sco.innerHTML = score;
+				applePos();
+				if(score%2==0){
+					speed *= 0.7;
+					speed = Math.floor(speed);
+					clearInterval(timer);
+					timer = setInterval(function(){
+						move();
+					},speed);
+					addLen();
+				}
+			}
+		}
+	}
+	//蛇变长了
+	function addLen(){
+		var json = {x:0,y:0};
+		json.x = lastCellX;
+		json.y = lastCellY;
+		pos.unshift(json);
+	}
+	//检测是否碰到自己
+	function eatSelf(){
+		for(var i=0;i<pos.length-1;i++){
+			if(pos[i].x==pos[pos.length-1].x&&pos[i].y==pos[pos.length-1].y){
+				return true;
+			}
+		}
+		return false;
+	}
+	function changePos(){
+		lastCellX = pos[0].x;
+		lastCellY = pos[0].y;
+		for(var i = 0;i<pos.length-1;i++){
+			pos[i].x = pos[i+1].x;
+			pos[i].y = pos[i+1].y;
+		}
+		switch(dir){
+			case 39 : 	pos[pos.length-1].x += 1;	break;
+			case 37 : 	pos[pos.length-1].x -= 1;	break;
+			case 38 : 	pos[pos.length-1].y -= 1;	break;
+			case 40 : 	pos[pos.length-1].y += 1;	break;
+		}
+	}
+	
+	function layout(){
+	var oTable = document.createElement("table");
+	oTable.id = 'tab';
+	for (var i=0;i<30;i++) {
+		var oTr = document.createElement("tr");	
+		for(var j=0;j<30;j++){
+			var oTd = document.createElement("td");
+			oTr.appendChild(oTd);
+		}
+		oTable.appendChild(oTr);
+	}
+	document.body.appendChild(oTable);
+}
+}
+
+		</script>
+	</head>
+	<body>
+		<p>分数:<span id="sco"></span></p>
+	</body>
+</html>
